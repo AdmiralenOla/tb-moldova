@@ -1,0 +1,7 @@
+country	Azerbaijan	40.143105	47.576927
+country	Belarus	53.709807	27.953389
+country	Georgia	42.315407	43.356892
+country	Moldova	47.411631	28.369885
+country	Romania	45.943161	24.96676
+country	Russia	61.52401	105.318756
+country	Djibouti	11.825138	42.590275

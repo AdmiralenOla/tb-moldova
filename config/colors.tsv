@@ -1,0 +1,32 @@
+country	Azerbaijan	#7fc97f
+country	Belarus	#beaed4
+country	Georgia	#fdc086
+country	Moldova	#ffff99
+country	Romania	#386cb0
+country	Russia	#f0027f
+country	Djibouti	#bf5b17
+
+cluster	2.2	#a6cee3
+cluster	4.1	#fb9a99
+cluster	4.2	#b15928
+cluster	4.3	#ffff99
+cluster	4.4	#00441b
+cluster	4.5	#e31a1c
+cluster	4.6	#33a02c
+cluster	4.7	#cab2d6
+cluster	4.8	#1f78b4
+cluster	4.9	#67001f
+cluster	7	#b2df8a
+
+clade_membership	2.2	#a6cee3
+clade_membership	4.1	#fb9a99
+clade_membership	4.2	#b15928
+clade_membership	4.3	#ffff99
+clade_membership	4.4	#00441b
+clade_membership	4.5	#e31a1c
+clade_membership	4.6	#33a02c
+clade_membership	4.7	#cab2d6
+clade_membership	4.8	#1f78b4
+clade_membership	4.9	#67001f
+clade_membership	7	#b2df8a
+clade_membership	Unassigned	#AAAAAA

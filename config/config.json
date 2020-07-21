@@ -1,0 +1,31 @@
+{
+ "title": "Barun TB project",
+ "maintainers": [
+   {"name": "Ola Brynildsrud", "url": "https://github.com/admiralenola"}
+ ],
+ "build_url": "https://github.com/nextstrain/tb",
+ "colorings": [
+  {
+   "key": "gt",
+   "title": "Genotype",
+   "type": "categorical"
+  },
+  {
+   "key": "clade_membership",
+   "title": "Clade",
+   "type": "categorical"
+  },
+  {
+    "key": "country",
+    "title": "Country",
+    "type": "categorical"
+  }
+ ],
+ "geo_resolutions": [
+   "country"
+ ],
+ "filters": [
+  "country",
+  "clade_membership"
+ ]
+}
