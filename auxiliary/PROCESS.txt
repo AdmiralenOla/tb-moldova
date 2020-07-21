@@ -1,0 +1,52 @@
+# Convert GATK tab to VCF
+python tab_to_vcf.py MoldovaUral203_062620.tab Moldova /media/olbb/Utgard/References/M_tuberculosis_H37Rv.fasta
+
+# Start nextstrain (In Barun 2020 dir)
+nextstrain shell .
+
+# Create results dir
+mkdir -p results
+
+# Create trees
+augur tree --alignment data/MoldovaUral203_062620.vcf.gz --vcf-reference data/M_tuberculosis_H37Rv.fasta --method iqtree --output results/tree_203.nwk
+augur tree --alignment data/MoldovaALLSTUDY285_062620.vcf.gz --vcf-reference data/M_tuberculosis_H37Rv.fasta --method iqtree --output results/tree_285.nwk
+
+# Refine trees (Not doing timetree for full dataset due to different lineages)
+augur refine -a data/MoldovaUral203_062620.vcf.gz -t results/tree_203.nwk --output-tree results/tree_203_refine_timetree_.nwk --vcf-reference data/M_tuberculosis_H37Rv.fasta --metadata data/metaUral203.tsv --timetree --root oldest --output-node-data results/branch_lengths_203_time.json --coalescent skyline
+augur refine -a data/MoldovaUral203_062620.vcf.gz -t results/tree_203.nwk --output-tree results/tree_203_refine.nwk --vcf-reference data/M_tuberculosis_H37Rv.fasta --metadata data/metaUral203.tsv --output-node-data results/branch_lengths_203.json --coalescent skyline 
+augur refine -a data/MoldovaALLSTUDY285_062620.vcf.gz -t results/tree_285.nwk --output-tree results/tree_285_refine.nwk --vcf-reference data/M_tuberculosis_H37Rv.fasta --metadata data/metaAllSTUDY285.tsv --output-node-data results/branch_lengths_285.json --coalescent skyline
+
+# Ancestral (node) sequence construction
+augur ancestral --tree results/tree_203_refine_timetree.nwk --alignment data/MoldovaUral203_062620.vcf.gz --vcf-reference data/M_tuberculosis_H37Rv.fasta --inference joint --output results/nt_muts_203_time.json --output-vcf results/nt_muts_203_time.vcf
+augur ancestral --tree results/tree_203_refine.nwk --alignment data/MoldovaUral203_062620.vcf.gz --vcf-reference data/M_tuberculosis_H37Rv.fasta --inference joint --output results/nt_muts_203.json --output-vcf results/nt_muts_203.vcf
+augur ancestral --tree results/tree_285_refine.nwk --alignment data/MoldovaALLSTUDY285_062620.vcf.gz --vcf-reference data/M_tuberculosis_H37Rv.fasta --inference joint --output results/nt_muts_285.json --output-vcf results/nt_muts_285.vcf
+
+# Translating mutations to AA level
+augur translate --tree results/tree_203_refine.nwk --ancestral-sequences results/nt_muts_203.vcf --vcf-reference data/M_tuberculosis_H37Rv.fasta --genes config/genes.txt --reference-sequence config/Mtb_H37Rv_NCBI_Annot.gff --output results/aa_muts_203.json --alignment-output results/translations_203.vcf --vcf-reference-output results/translations_reference_203.fasta
+augur translate --tree results/tree_203_refine_timetree.nwk --ancestral-sequences results/nt_muts_203_time.vcf --vcf-reference data/M_tuberculosis_H37Rv.fasta --genes config/genes.txt --reference-sequence config/Mtb_H37Rv_NCBI_Annot.gff --output results/aa_muts_203_time.json --alignment-output results/translations_203_time.vcf --vcf-reference-output results/translations_reference_203_time.fasta
+augur translate --tree results/tree_285_refine.nwk --ancestral-sequences results/nt_muts_285.vcf --vcf-reference data/M_tuberculosis_H37Rv.fasta --genes config/genes.txt --reference-sequence config/Mtb_H37Rv_NCBI_Annot.gff --output results/aa_muts_285.json --alignment-output results/translations_285.vcf --vcf-reference-output results/translations_reference_285.fasta
+
+# Inferring ancestral traits (country)
+augur traits -t results/tree_203_refine.nwk --metadata data/metaUral203.tsv --columns country --output-node-data results/traits_203.json
+augur traits -t results/tree_203_refine_timetree.nwk --metadata data/metaUral203.tsv --columns country --output-node-data results/traits_203_time.json
+augur traits -t results/tree_285_refine.nwk --metadata data/metaAllSTUDY285.tsv --columns country --output-node-data results/traits_285.json
+
+# Map drug resistance mutations
+augur sequence-traits --ancestral-sequences results/nt_muts_203.vcf --translations results/translations_203.vcf --vcf-reference data/M_tuberculosis_H37Rv.fasta --vcf-translate-reference results/translations_reference_203.fasta --features config/DRMs_AAnuc.tsv --label "Drug_resistance" --output-node-data results/drms_203.json
+augur sequence-traits --ancestral-sequences results/nt_muts_203_time.vcf --translations results/translations_203_time.vcf --vcf-reference data/M_tuberculosis_H37Rv.fasta --vcf-translate-reference results/translations_reference_203_time.fasta --features config/DRMs_AAnuc.tsv --label "Drug_resistance" --output-node-data results/drms_203_time.json
+augur sequence-traits --ancestral-sequences results/nt_muts_285.vcf --translations results/translations_285.vcf --vcf-reference data/M_tuberculosis_H37Rv.fasta --vcf-translate-reference results/translations_reference_285.fasta --features config/DRMs_AAnuc.tsv --label "Drug_resistance" --output-node-data results/drms_285.json
+
+# Export to auspice
+augur export v2 --tree results/tree_203_refine.nwk --metadata data/metaUral203.tsv --auspice-config config/config.json --colors config/colors.tsv --lat-longs config/lat_longs.txt --node-data results/branch_lengths_203.json results/traits_203.json results/drms_203.json results/aa_muts_203.json results/clades.json results/nt_muts_203.json --output tb_203.json
+augur export v2 --tree results/tree_203_refine_timetree.nwk --metadata data/metaUral203.tsv --auspice-config config/config.json --colors config/colors.tsv --lat-longs config/lat_longs.txt --node-data results/branch_lengths_203_time.json results/traits_203_time.json results/drms_203_time.json results/aa_muts_203_time.json results/clades.json results/nt_muts_203_time.json --output auspice/tb_203_time.json
+augur export v2 --tree results/tree_285_refine.nwk --metadata data/metaAllSTUDY285.tsv --auspice-config config/config.json --colors config/colors.tsv --lat-longs config/lat_longs.txt --node-data results/branch_lengths_285.json results/traits_285.json results/drms_285.json results/aa_muts_285.json results/clades.json results/nt_muts_285.json --output auspice/tb_285.json
+
+## Note 2 things:
+# 1. Clade export not working. This was previously done manually. I will have to manually assign membership to internal nodes in the JSON file if I want to get this working
+# 2. The H37Rv annotation contains a gene called *MtCM - This will give an error in JSON validation. I manually removed the asterisk
+
+## Couldnt get the auspice version in nextstrain cli to work. Had to re-install into conda env "auspice"
+conda create -n auspice nodejs=12
+conda activate auspice
+npm install --global auspice
+auspice view --datasetDir auspice/
